@@ -216,7 +216,7 @@ class graphite {
     require => [ File["/opt/graphite/storage/log/webapp/"], File["/opt/graphite/storage/graphite.db"] ],
   }
 
-  package { "depedencies" :
+  package { "dependencies" :
     name   => [apache2, python-support, python-ldap, python-cairo, python-django, python-django-tagging, python-simplejson, libapache2-mod-python, python-memcache, python-pysqlite2],
     ensure => latest,
   }
@@ -225,7 +225,7 @@ class graphite {
       ensure   => installed,
       provider => dpkg,
       source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
-      require  => Package["depedencies"],
+      require  => Package["dependencies"],
   }
 
 }
