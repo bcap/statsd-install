@@ -1,119 +1,119 @@
 Exec {
-    path => ["/usr/bin", "/usr/sbin", '/bin']
+  path => ["/usr/bin", "/usr/sbin", '/bin']
 }
 
 Exec["apt-get-update"] -> Package <| |>
 
 exec { "apt-get-update" :
-    command => "/usr/bin/apt-get update",
+  command => "/usr/bin/apt-get update",
 }
 
 class statsd {
 
-   package { "nodejs" :
-     ensure => "present"
-   }
+  package { "nodejs" :
+    ensure => "present"
+  }
 
-   # for now
-   package { "statsd" :
-     provider => "dpkg",
-     source => "/vagrant/statsd_0.0.1_all.deb",
-     ensure => installed,
-     require => Package[nodejs],
-   }
-
+  # for now
+  package { "statsd" :
+    provider => "dpkg",
+    source => "/vagrant/statsd_0.0.1_all.deb",
+    ensure => installed,
+    require => Package[nodejs],
+  }
+  
 }
 
 class carbon {
 
- $build_dir = "/tmp"
+  $build_dir = "/tmp"
 
- $carbon_url = "http://launchpad.net/graphite/0.9/0.9.9/+download/carbon-0.9.9.tar.gz"
+  $carbon_url = "http://launchpad.net/graphite/0.9/0.9.9/+download/carbon-0.9.9.tar.gz"
 
- $carbon_loc = "$build_dir/carbon.tar.gz"
+  $carbon_loc = "$build_dir/carbon.tar.gz"
 
- include graphite
+  #include graphite
 
   package { "python-twisted" :
     ensure => latest
   }
 
- file { "/etc/init.d/carbon" :
-   source => "/tmp/vagrant-puppet/manifests/files/carbon",
-   ensure => present
- }
+  file { "/etc/init.d/carbon" :
+    source => "/tmp/vagrant-puppet/manifests/files/carbon",
+    ensure => present
+  }
 
- file { "/opt/graphite/conf/carbon.conf" :
-   source => "/tmp/vagrant-puppet/manifests/files/carbon.conf",
-   ensure => present,
-   notify => Service[carbon],
-   subscribe => Exec[install-carbon],
- }
+  file { "/opt/graphite/conf/carbon.conf" :
+    source => "/tmp/vagrant-puppet/manifests/files/carbon.conf",
+    ensure => present,
+    notify => Service[carbon],
+    subscribe => Exec[install-carbon],
+  }
 
- file { "/opt/graphite/conf/storage-schemas.conf" :
-   source => "/tmp/vagrant-puppet/manifests/files/storage-schemas.conf",
-   ensure => present,
-   notify => Service[carbon],
-   subscribe => Exec[install-carbon],
- }
+  file { "/opt/graphite/conf/storage-schemas.conf" :
+    source => "/tmp/vagrant-puppet/manifests/files/storage-schemas.conf",
+    ensure => present,
+    notify => Service[carbon],
+    subscribe => Exec[install-carbon],
+  }
 
- file { "/var/log/carbon" :
-   ensure => directory,
-   owner => www-data,
-   group => www-data,
- }
+  file { "/var/log/carbon" :
+    ensure => directory,
+    owner => www-data,
+    group => www-data,
+  }
 
- service { carbon :
+  service { carbon :
     ensure => running,
     require => File["/etc/init.d/carbon"]
- }
+  }
 
- exec { "download-graphite-carbon":
-   command => "wget -O $carbon_loc $carbon_url",
-   creates => "$carbon_loc"
- }
+  exec { "download-graphite-carbon":
+    command => "wget -O $carbon_loc $carbon_url",
+    creates => "$carbon_loc"
+  }
 
- exec { "unpack-carbon":
-   command => "tar -zxvf $carbon_loc",
-   cwd => $build_dir,
-   subscribe => Exec[download-graphite-carbon],
-   refreshonly => true,
- }
+  exec { "unpack-carbon":
+    command => "tar -zxvf $carbon_loc",
+    cwd => $build_dir,
+    subscribe => Exec[download-graphite-carbon],
+    refreshonly => true,
+  }
 
- exec { "install-carbon" :
-   command => "python setup.py install",
-   cwd => "$build_dir/carbon-0.9.9",
-   require => Exec[unpack-carbon],
-   creates => "/opt/graphite/bin/carbon-cache.py",
+  exec { "install-carbon" :
+    command => "python setup.py install",
+    cwd => "$build_dir/carbon-0.9.9",
+    require => Exec[unpack-carbon],
+    creates => "/opt/graphite/bin/carbon-cache.py",
   }
 }
 
 class graphite {
 
- $build_dir = "/tmp"
+  $build_dir = "/tmp"
 
- $webapp_url = "http://launchpad.net/graphite/0.9/0.9.9/+download/graphite-web-0.9.9.tar.gz"
+  $webapp_url = "http://launchpad.net/graphite/0.9/0.9.9/+download/graphite-web-0.9.9.tar.gz"
 
- $webapp_loc = "$build_dir/graphite-web.tar.gz"
+  $webapp_loc = "$build_dir/graphite-web.tar.gz"
 
   exec { "download-graphite-webapp":
-        command => "wget -O $webapp_loc $webapp_url",
-        creates => "$webapp_loc"
-   }
+    command => "wget -O $webapp_loc $webapp_url",
+    creates => "$webapp_loc"
+  }
 
-   exec { "unpack-webapp":
-     command => "tar -zxvf $webapp_loc",
-     cwd => $build_dir,
-     subscribe=> Exec[download-graphite-webapp],
-     refreshonly => true,
-   }
+  exec { "unpack-webapp":
+    command => "tar -zxvf $webapp_loc",
+    cwd => $build_dir,
+    subscribe=> Exec[download-graphite-webapp],
+    refreshonly => true,
+  }
 
-   exec { "install-webapp":
-     command => "python setup.py install",
-     cwd => "$build_dir/graphite-web-0.9.9",
-     require => Exec[unpack-webapp],
-     creates => "/opt/graphite/webapp"
-   }
+  exec { "install-webapp":
+    command => "python setup.py install",
+    cwd => "$build_dir/graphite-web-0.9.9",
+    require => Exec[unpack-webapp],
+    creates => "/opt/graphite/webapp"
+  }
 
   file { [ "/opt/graphite/storage", "/opt/graphite/storage/whisper" ]:
     owner => "www-data",
@@ -122,17 +122,17 @@ class graphite {
   }
 
   exec { "init-db":
-     command => "python manage.py syncdb --noinput",
-     cwd => "/opt/graphite/webapp/graphite",
-     creates => "/opt/graphite/storage/graphite.db",
-     subscribe => File["/opt/graphite/storage"],
-     require => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Package["dependencies"] ]
-   }
+    command => "python manage.py syncdb --noinput",
+    cwd => "/opt/graphite/webapp/graphite",
+    creates => "/opt/graphite/storage/graphite.db",
+    subscribe => File["/opt/graphite/storage"],
+    require => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Package["dependencies"] ]
+  }
 
   file { "/opt/graphite/webapp/graphite/initial_data.json" :
-     require => File["/opt/graphite/storage"],
-     ensure => present,
-     content => '
+    require => File["/opt/graphite/storage"],
+    ensure => present,
+    content => '
 [
   {
     "pk": 1, 
@@ -173,7 +173,7 @@ class graphite {
     source => "/tmp/vagrant-puppet/manifests/files/local_settings.py",
     ensure => present,
     require => File["/opt/graphite/storage"]
- }
+  }
 
   file { "/etc/apache2/sites-available/default" :
     content =>' 
@@ -222,13 +222,13 @@ class graphite {
   }
 
   package { "python-whisper" :
-      ensure   => installed,
-      provider => dpkg,
-      source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
-      require  => Package["dependencies"],
+    ensure   => installed,
+    provider => dpkg,
+    source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
+    require  => Package["dependencies"],
   }
 
 }
 
 include carbon
-include statsd
+#include statsd
