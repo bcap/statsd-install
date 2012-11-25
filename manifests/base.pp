@@ -126,7 +126,7 @@ class graphite {
      cwd => "/opt/graphite/webapp/graphite",
      creates => "/opt/graphite/storage/graphite.db",
      subscribe => File["/opt/graphite/storage"],
-     require => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Package["python-django-tagging"] ]
+     require => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Package["dependencies"] ]
    }
 
   file { "/opt/graphite/webapp/graphite/initial_data.json" :
@@ -208,7 +208,7 @@ class graphite {
 
 </VirtualHost>',
     notify => Service["apache2"],
-    require => Package["apache2"],
+    require => Package["dependencies"],
   }
 
   service { "apache2" :
