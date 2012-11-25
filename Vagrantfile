@@ -1,7 +1,9 @@
 Vagrant::Config.run do |config|
-  config.vm.box = "ubuntu11.04_puppet"
-  config.vm.box_url = "https://github.com/downloads/divio/vagrant-boxes/vagrant-ubuntu-11.04-server-amd64-v1.box"
 
+  # This Vagrant configuration is based on the plain Ubuntu Server 64 12.04 iso
+  # The box can be installed running the 'install-vagrant-box.sh' script
+  config.vm.box = "ubuntu-precise64" 
+  
   config.vm.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   
   config.vm.forward_port 80, 8080
