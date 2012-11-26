@@ -106,6 +106,8 @@ class webapp {
   $webapp_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/graphite-web-${full_version}.tar.gz"
   $webapp_package = "${build_dir}/graphite-web-${full_version}.tar.gz"
 
+  include whisper
+
   package { "webapp-dependencies" :
     name   => [
       "python-support", 
@@ -116,6 +118,7 @@ class webapp {
       "python-simplejson", 
       "python-memcache", 
       "python-pysqlite2",
+      "python-txamqp",
       "apache2",
       "libapache2-mod-python",
     ],
@@ -137,7 +140,7 @@ class webapp {
   exec { "install-webapp":
     command => "python setup.py install",
     cwd     => "$build_dir/graphite-web-${full_version}",
-    require => [ Exec["unpack-webapp"], Package["webapp-dependencies"] ],
+    require => [ Exec["unpack-webapp"], Package["webapp-dependencies"], Class["whisper"] ],
     creates => "/opt/graphite/webapp"
   }
 
@@ -192,15 +195,51 @@ class webapp {
     require => [ File["/opt/graphite/storage/log/webapp"], File["/opt/graphite/storage/graphite.db"] ],
   }
 
-  # package { "python-whisper" :
-  #   ensure   => installed,
-  #   provider => dpkg,
-  #   source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
-  #   require  => Package["dependencies"],
-  # }
+  package { "python-whisper" :
+    ensure   => installed,
+    provider => dpkg,
+    source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
+    require  => Package["webapp-dependencies"],
+  }
 
+}
+
+class whisper {
+  # Configs
+  $major_version = "0.9"
+  $minor_version = "9"
+
+  # Vars
+  $full_version = "${major_version}.${minor_version}"
+  $build_dir = "/tmp"
+  $whisper_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/whisper-${full_version}.tar.gz"
+  $whisper_package = "${build_dir}/whisper-${full_version}.tar.gz"
+
+  package { "whisper-dependencies" :
+    name   => ["python-txamqp"],
+    ensure => latest,
+  }
+
+  exec { "download-whisper":
+    command => "wget -O $whisper_package $whisper_url",
+    creates => "$whisper_package"
+  }
+
+  exec { "unpack-whisper":
+    command     => "tar -zxvf $whisper_package",
+    cwd         => $build_dir,
+    subscribe   => Exec["download-whisper"],
+    refreshonly => true,
+  }
+
+  exec { "install-whisper":
+    command => "python setup.py install",
+    cwd     => "$build_dir/graphite-web-${full_version}",
+    creates => "/usr/local/bin/whisper-info.py",
+    require => [ Exec["unpack-whisper"], Package["whisper-dependencies"] ],
+  }
 }
 
 include webapp
 include carbon
-#include statsd
+include whisper
