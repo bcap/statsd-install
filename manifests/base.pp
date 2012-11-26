@@ -227,7 +227,7 @@ class whisper {
 
   exec { "install-whisper":
     command => "python setup.py install",
-    cwd     => "$build_dir/graphite-web-${full_version}",
+    cwd     => "$build_dir/whisper-${full_version}",
     creates => "/usr/local/bin/whisper-info.py",
     require => [ Exec["unpack-whisper"], Package["whisper-dependencies"] ],
   }
