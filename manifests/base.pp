@@ -195,13 +195,6 @@ class webapp {
     require => [ File["/opt/graphite/storage/log/webapp"], File["/opt/graphite/storage/graphite.db"] ],
   }
 
-  package { "python-whisper" :
-    ensure   => installed,
-    provider => dpkg,
-    source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
-    require  => Package["webapp-dependencies"],
-  }
-
 }
 
 class whisper {
