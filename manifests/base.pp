@@ -21,21 +21,45 @@ class statsd {
     ensure => installed,
     require => Package[nodejs],
   }
-  
+
 }
 
 class carbon {
 
+  # Configs
+  $major_version = "0.9"
+  $minor_version = "10"
+
+  # Vars
+  $full_version = "${major_version}.${minor_version}"
   $build_dir = "/tmp"
+  $carbon_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/carbon-${full_version}.tar.gz"
+  $carbon_package = "${build_dir}/carbon-${full_version}.tar.gz"
 
-  $carbon_url = "http://launchpad.net/graphite/0.9/0.9.9/+download/carbon-0.9.9.tar.gz"
+  include webapp
 
-  $carbon_loc = "$build_dir/carbon.tar.gz"
-
-  #include graphite
-
-  package { "python-twisted" :
+  package { "carbon-dependencies":
+    name   => ["python-twisted"],
     ensure => latest
+  }
+
+  exec { "download-carbon":
+    command => "wget -O $carbon_package $carbon_url",
+    creates => "$carbon_package"
+  }
+
+  exec { "unpack-carbon":
+    command     => "tar -zxvf $carbon_package",
+    cwd         => "$build_dir",
+    refreshonly => true,
+    subscribe   => Exec["download-carbon"],
+  }
+
+  exec { "install-carbon" :
+    command => "python setup.py install",
+    cwd     => "$build_dir/carbon-${full_version}",
+    creates => "/opt/graphite/bin/carbon-cache.py",
+    require => [ Exec["unpack-carbon"], Package["carbon-dependencies"], Class["webapp"] ]
   }
 
   file { "/etc/init.d/carbon" :
@@ -44,191 +68,139 @@ class carbon {
   }
 
   file { "/opt/graphite/conf/carbon.conf" :
-    source => "/tmp/vagrant-puppet/manifests/files/carbon.conf",
-    ensure => present,
-    notify => Service[carbon],
-    subscribe => Exec[install-carbon],
+    source    => "/tmp/vagrant-puppet/manifests/files/carbon.conf",
+    ensure    => present,
+    notify    => Service["carbon"],
+    subscribe => Exec["install-carbon"],
   }
 
   file { "/opt/graphite/conf/storage-schemas.conf" :
-    source => "/tmp/vagrant-puppet/manifests/files/storage-schemas.conf",
-    ensure => present,
-    notify => Service[carbon],
-    subscribe => Exec[install-carbon],
+    source    => "/tmp/vagrant-puppet/manifests/files/storage-schemas.conf",
+    ensure    => present,
+    notify    => Service[carbon],
+    subscribe => Exec["install-carbon"],
   }
 
   file { "/var/log/carbon" :
     ensure => directory,
-    owner => www-data,
-    group => www-data,
+    owner  => "www-data",
+    group  => "www-data",
   }
 
-  service { carbon :
-    ensure => running,
-    require => File["/etc/init.d/carbon"]
+  service { "carbon" :
+    ensure    => running,
+    require   => [ File["/etc/init.d/carbon"], Exec["install-carbon"] ],
   }
 
-  exec { "download-graphite-carbon":
-    command => "wget -O $carbon_loc $carbon_url",
-    creates => "$carbon_loc"
-  }
-
-  exec { "unpack-carbon":
-    command => "tar -zxvf $carbon_loc",
-    cwd => $build_dir,
-    subscribe => Exec[download-graphite-carbon],
-    refreshonly => true,
-  }
-
-  exec { "install-carbon" :
-    command => "python setup.py install",
-    cwd => "$build_dir/carbon-0.9.9",
-    require => Exec[unpack-carbon],
-    creates => "/opt/graphite/bin/carbon-cache.py",
-  }
 }
 
-class graphite {
+class webapp {
 
+  # Configs
+  $major_version = "0.9"
+  $minor_version = "10"
+
+  # Vars
+  $full_version = "${major_version}.${minor_version}"
   $build_dir = "/tmp"
+  $webapp_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/graphite-web-${full_version}.tar.gz"
+  $webapp_package = "${build_dir}/graphite-web-${full_version}.tar.gz"
 
-  $webapp_url = "http://launchpad.net/graphite/0.9/0.9.9/+download/graphite-web-0.9.9.tar.gz"
+  package { "webapp-dependencies" :
+    name   => [
+      "python-support", 
+      "python-ldap", 
+      "python-cairo", 
+      "python-django", 
+      "python-django-tagging", 
+      "python-simplejson", 
+      "python-memcache", 
+      "python-pysqlite2",
+      "apache2",
+      "libapache2-mod-python",
+    ],
+    ensure => latest,
+  }
 
-  $webapp_loc = "$build_dir/graphite-web.tar.gz"
-
-  exec { "download-graphite-webapp":
-    command => "wget -O $webapp_loc $webapp_url",
-    creates => "$webapp_loc"
+  exec { "download-webapp":
+    command => "wget -O $webapp_package $webapp_url",
+    creates => "$webapp_package"
   }
 
   exec { "unpack-webapp":
-    command => "tar -zxvf $webapp_loc",
-    cwd => $build_dir,
-    subscribe=> Exec[download-graphite-webapp],
+    command     => "tar -zxvf $webapp_package",
+    cwd         => $build_dir,
+    subscribe   => Exec["download-webapp"],
     refreshonly => true,
   }
 
   exec { "install-webapp":
     command => "python setup.py install",
-    cwd => "$build_dir/graphite-web-0.9.9",
-    require => Exec[unpack-webapp],
+    cwd     => "$build_dir/graphite-web-${full_version}",
+    require => [ Exec["unpack-webapp"], Package["webapp-dependencies"] ],
     creates => "/opt/graphite/webapp"
   }
 
   file { [ "/opt/graphite/storage", "/opt/graphite/storage/whisper" ]:
-    owner => "www-data",
+    owner     => "www-data",
+    mode      => "0775",
     subscribe => Exec["install-webapp"],
-    mode => "0775",
-  }
-
-  exec { "init-db":
-    command => "python manage.py syncdb --noinput",
-    cwd => "/opt/graphite/webapp/graphite",
-    creates => "/opt/graphite/storage/graphite.db",
-    subscribe => File["/opt/graphite/storage"],
-    require => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Package["dependencies"] ]
   }
 
   file { "/opt/graphite/webapp/graphite/initial_data.json" :
-    require => File["/opt/graphite/storage"],
-    ensure => present,
-    content => '
-[
-  {
-    "pk": 1, 
-    "model": "auth.user", 
-    "fields": {
-      "username": "admin", 
-      "first_name": "", 
-      "last_name": "", 
-      "is_active": true, 
-      "is_superuser": true, 
-      "is_staff": true, 
-      "last_login": "2011-09-20 17:02:14", 
-      "groups": [], 
-      "user_permissions": [], 
-      "password": "sha1$1b11b$edeb0a67a9622f1f2cfeabf9188a711f5ac7d236", 
-      "email": "root@example.com", 
-      "date_joined": "2011-09-20 17:02:14"
-    }
-  }
-]'
+    ensure  => present,
+    source  => "/tmp/vagrant-puppet/manifests/files/initial_data.json",
+    require => Exec["install-webapp"],
   }
 
-  file { "/opt/graphite/storage/graphite.db" :
-    owner => "www-data",
-    mode => "0664",
-    subscribe => Exec["init-db"],
-    notify => Service["apache2"],
-  }
-
-  file { "/opt/graphite/storage/log/webapp/":
-    ensure => "directory",
-    owner => "www-data",
-    mode => "0775",
+  file { "/opt/graphite/storage/log/webapp":
+    ensure    => "directory",
+    owner     => "www-data",
+    mode      => "0775",
     subscribe => Exec["install-webapp"],
   }
 
   file { "/opt/graphite/webapp/graphite/local_settings.py" :
-    source => "/tmp/vagrant-puppet/manifests/files/local_settings.py",
-    ensure => present,
-    require => File["/opt/graphite/storage"]
+    source  => "/tmp/vagrant-puppet/manifests/files/local_settings.py",
+    ensure  => present,
+    require => Exec["install-webapp"]
   }
 
   file { "/etc/apache2/sites-available/default" :
-    content =>' 
-<VirtualHost *:80>
-        ServerName graphite
-        DocumentRoot "/opt/graphite/webapp"
-        ErrorLog /opt/graphite/storage/log/webapp/error.log
-        CustomLog /opt/graphite/storage/log/webapp/access.log common
+    source  => "/tmp/vagrant-puppet/manifests/files/apache-default-site",
+    notify  => Service["apache2"],
+    require => Package["webapp-dependencies"],
+  }
 
-        <Location "/">
-                SetHandler python-program
-                PythonPath "[\'/opt/graphite/webapp\'] + sys.path"
-                PythonHandler django.core.handlers.modpython
-                SetEnv DJANGO_SETTINGS_MODULE graphite.settings
-                PythonDebug Off
-                PythonAutoReload Off
-        </Location>
+  exec { "init-db":
+    command   => "python manage.py syncdb --noinput",
+    cwd       => "/opt/graphite/webapp/graphite",
+    creates   => "/opt/graphite/storage/graphite.db",
+    subscribe => File["/opt/graphite/storage"],
+    require   => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Exec["install-webapp"] ]
+  }
 
-        <Location "/content/">
-                SetHandler None
-        </Location>
-
-        <Location "/media/">
-                SetHandler None
-        </Location>
-
-    # NOTE: In order for the django admin site media to work you
-    # must change @DJANGO_ROOT@ to be the path to your django
-    # installation, which is probably something like:
-    # /usr/lib/python2.6/site-packages/django
-        Alias /media/ "@DJANGO_ROOT@/contrib/admin/media/"
-
-</VirtualHost>',
-    notify => Service["apache2"],
-    require => Package["dependencies"],
+  file { "/opt/graphite/storage/graphite.db" :
+    owner     => "www-data",
+    mode      => "0664",
+    subscribe => Exec["init-db"],
+    notify    => Service["apache2"],
   }
 
   service { "apache2" :
     ensure => "running",
-    require => [ File["/opt/graphite/storage/log/webapp/"], File["/opt/graphite/storage/graphite.db"] ],
+    require => [ File["/opt/graphite/storage/log/webapp"], File["/opt/graphite/storage/graphite.db"] ],
   }
 
-  package { "dependencies" :
-    name   => [apache2, python-support, python-ldap, python-cairo, python-django, python-django-tagging, python-simplejson, libapache2-mod-python, python-memcache, python-pysqlite2],
-    ensure => latest,
-  }
-
-  package { "python-whisper" :
-    ensure   => installed,
-    provider => dpkg,
-    source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
-    require  => Package["dependencies"],
-  }
+  # package { "python-whisper" :
+  #   ensure   => installed,
+  #   provider => dpkg,
+  #   source   => "/vagrant/python-whisper_0.9.9-1_all.deb",
+  #   require  => Package["dependencies"],
+  # }
 
 }
 
+include webapp
 include carbon
 #include statsd
