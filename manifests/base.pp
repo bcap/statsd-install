@@ -28,7 +28,7 @@ class carbon {
 
   # Configs
   $major_version = "0.9"
-  $minor_version = "10"
+  $minor_version = "9"
 
   # Vars
   $full_version = "${major_version}.${minor_version}"
@@ -98,7 +98,7 @@ class webapp {
 
   # Configs
   $major_version = "0.9"
-  $minor_version = "10"
+  $minor_version = "9"
 
   # Vars
   $full_version = "${major_version}.${minor_version}"
