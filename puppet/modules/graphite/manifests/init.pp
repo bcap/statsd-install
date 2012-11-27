@@ -11,9 +11,4 @@ class graphite (
     major_version => $major_version,
     minor_version => $minor_version,
   }
-
-  class { "graphite::whisper": 
-    major_version => $major_version,
-    minor_version => $minor_version,
-  }
 }
