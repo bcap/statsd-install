@@ -18,6 +18,20 @@ class graphite::carbon (
     ensure => latest
   }
 
+  group { "carbon":
+    ensure => present,
+    system => true,
+  }
+
+  user { "carbon" :
+    ensure  => present,
+    comment => "carbon daemon system user",
+    home    => "/opt/carbon",
+    gid     => "carbon",
+    system  => true,
+    require => Group["carbon"],
+  }
+
   exec { "download-carbon":
     command => "wget -O $carbon_package $carbon_url",
     creates => "$carbon_package"
@@ -30,36 +44,57 @@ class graphite::carbon (
     subscribe   => Exec["download-carbon"],
   }
 
+  file { "carbon-install-config":
+    path    => "$build_dir/carbon-${full_version}/setup.cfg",
+    source  => "puppet:///modules/graphite/carbon/setup.cfg",
+    ensure  => present,
+    require => Exec["unpack-carbon"],
+  }
+
   exec { "install-carbon" :
-    command => "python setup.py install",
+    command => "python setup.py install && chown carbon:carbon -R /opt/carbon",
     cwd     => "$build_dir/carbon-${full_version}",
-    creates => "/opt/graphite/bin/carbon-cache.py",
-    require => [ Exec["unpack-carbon"], Package["carbon-dependencies"], Class["graphite::whisper"] ]
+    creates => "/opt/carbon/bin/carbon-cache.py",
+    require => [ Exec["unpack-carbon"], File["carbon-install-config"], User["carbon"], Package["carbon-dependencies"], Class["graphite::whisper"] ]
   }
 
   file { "/etc/init.d/carbon" :
     source => "puppet:///modules/graphite/carbon/carbon",
+    owner  => "root",
+    group  => "root",
     ensure => present
   }
 
-  file { "/opt/graphite/conf/carbon.conf" :
+  file { "/opt/carbon/conf/carbon.conf" :
     source    => "puppet:///modules/graphite/carbon/carbon.conf",
+    owner     => "carbon",
+    group     => "carbon",
     ensure    => present,
     notify    => Service["carbon"],
     subscribe => Exec["install-carbon"],
   }
 
-  file { "/opt/graphite/conf/storage-schemas.conf" :
+  file { "/opt/carbon/conf/storage-schemas.conf" :
     source    => "puppet:///modules/graphite/carbon/storage-schemas.conf",
+    owner     => "carbon",
+    group     => "carbon",
     ensure    => present,
     notify    => Service[carbon],
     subscribe => Exec["install-carbon"],
   }
 
+  file { "/var/run/carbon" :
+    ensure  => directory,
+    owner   => "carbon",
+    group   => "carbon",
+    require => User["carbon"],
+  }
+
   file { "/var/log/carbon" :
     ensure => directory,
-    owner  => "www-data",
-    group  => "www-data",
+    owner  => "carbon",
+    group  => "carbon",
+    require => User["carbon"],
   }
 
   service { "carbon" :

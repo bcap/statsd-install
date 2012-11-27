@@ -20,12 +20,12 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="carbon database"
 NAME=carbon
 DAEMON=/usr/bin/python
-PIDFILE=/opt/graphite/storage/carbon-cache.pid
-DAEMON_ARGS="/opt/graphite/bin/carbon-cache.py --logdir=/var/log/carbon/ --pidfile=$PIDFILE start"
+PIDFILE=/var/run/carbon/carbon-cache.pid
+DAEMON_ARGS="/opt/carbon/bin/carbon-cache.py --logdir=/var/log/carbon/ --pidfile=$PIDFILE start"
 SCRIPTNAME=/etc/init.d/$NAME
-USER=www-data
-START_STOP_DAEMON_OPTIONS="--chuid=$USER:$USER --background --chdir=/opt/graphite/"
+USER=carbon
 LOG_PATH=/var/log/$NAME
+START_STOP_DAEMON_OPTIONS="--chuid=$USER:$USER --background --chdir=/opt/carbon/"
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
 
