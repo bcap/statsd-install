@@ -91,7 +91,6 @@ class carbon {
     ensure    => running,
     require   => [ File["/etc/init.d/carbon"], Exec["install-carbon"] ],
   }
-
 }
 
 class webapp {
