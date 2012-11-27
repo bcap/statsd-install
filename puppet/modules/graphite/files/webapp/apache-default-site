@@ -1,8 +1,8 @@
 <VirtualHost *:80>
     ServerName   graphite
     DocumentRoot "/opt/graphite/webapp"
-    ErrorLog     "/opt/graphite/storage/log/webapp/error.log"
-    CustomLog    "/opt/graphite/storage/log/webapp/access.log" common
+    ErrorLog     "/var/log/graphite/error.log"
+    CustomLog    "/var/log/graphite/access.log" common
 
     <Location "/">
         SetHandler       python-program

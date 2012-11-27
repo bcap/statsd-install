@@ -44,23 +44,10 @@ class graphite::webapp (
     creates => "/opt/graphite/webapp"
   }
 
-  file { [ "/opt/graphite/storage", "/opt/graphite/storage/whisper" ]:
-    owner     => "www-data",
-    mode      => "0775",
-    subscribe => Exec["install-webapp"],
-  }
-
   file { "/opt/graphite/webapp/graphite/initial_data.json" :
     ensure  => present,
     source  => "puppet:///modules/graphite/webapp/initial_data.json",
     require => Exec["install-webapp"],
-  }
-
-  file { "/opt/graphite/storage/log/webapp":
-    ensure    => "directory",
-    owner     => "www-data",
-    mode      => "0775",
-    subscribe => Exec["install-webapp"],
   }
 
   file { "/opt/graphite/webapp/graphite/local_settings.py" :
@@ -75,12 +62,24 @@ class graphite::webapp (
     require => Package["webapp-dependencies"],
   }
 
+  file { ["/opt/graphite/storage", "/opt/graphite/storage/log/webapp"]:
+    ensure    => "directory",
+    owner     => "www-data",
+    mode      => "0775",
+    require   => Package["webapp-dependencies"],
+  }
+
+  file { "/var/log/graphite":
+    ensure    => "link",
+    target    => "/opt/graphite/storage/log/webapp",
+    require   => Package["webapp-dependencies"],
+  }
+
   exec { "init-db":
     command   => "python manage.py syncdb --noinput",
     cwd       => "/opt/graphite/webapp/graphite",
     creates   => "/opt/graphite/storage/graphite.db",
-    subscribe => File["/opt/graphite/storage"],
-    require   => [ File["/opt/graphite/webapp/graphite/initial_data.json"], Exec["install-webapp"] ]
+    require   => [ File["/opt/graphite/storage/log/webapp"], File["/opt/graphite/webapp/graphite/initial_data.json"], Exec["install-webapp"] ]
   }
 
   file { "/opt/graphite/storage/graphite.db" :
@@ -92,7 +91,7 @@ class graphite::webapp (
 
   service { "apache2" :
     ensure => "running",
-    require => [ File["/opt/graphite/storage/log/webapp"], File["/opt/graphite/storage/graphite.db"] ],
+    require => [ File["/var/log/graphite"], File["/opt/graphite/storage/graphite.db"] ],
   }
 
 }
