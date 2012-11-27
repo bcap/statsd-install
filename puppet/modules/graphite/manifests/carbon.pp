@@ -33,19 +33,19 @@ class graphite::carbon (
   }
 
   file { "/etc/init.d/carbon" :
-    source => "puppet:///modules/graphite/carbon",
+    source => "puppet:///modules/graphite/carbon/carbon",
     ensure => present
   }
 
   file { "/opt/graphite/conf/carbon.conf" :
-    source    => "puppet:///modules/graphite/carbon.conf",
+    source    => "puppet:///modules/graphite/carbon/carbon.conf",
     ensure    => present,
     notify    => Service["carbon"],
     subscribe => Exec["install-carbon"],
   }
 
   file { "/opt/graphite/conf/storage-schemas.conf" :
-    source    => "puppet:///modules/graphite/storage-schemas.conf",
+    source    => "puppet:///modules/graphite/carbon/storage-schemas.conf",
     ensure    => present,
     notify    => Service[carbon],
     subscribe => Exec["install-carbon"],
