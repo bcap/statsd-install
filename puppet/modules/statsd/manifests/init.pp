@@ -59,6 +59,8 @@ class statsd  (
 
   file { "/etc/init.d/statsd" :
     source => "puppet:///modules/statsd/statsd",
+    owner  => "root",
+    group  => "root",
     ensure => present
   }
 
