@@ -8,6 +8,11 @@ class graphite::carbon (
   $carbon_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/carbon-${full_version}.tar.gz"
   $carbon_package = "${build_dir}/carbon-${full_version}.tar.gz"
 
+  class { "graphite::whisper": 
+    major_version => $major_version,
+    minor_version => $minor_version,
+  }
+
   package { "carbon-dependencies":
     name   => ["python-twisted"],
     ensure => latest
@@ -29,7 +34,7 @@ class graphite::carbon (
     command => "python setup.py install",
     cwd     => "$build_dir/carbon-${full_version}",
     creates => "/opt/graphite/bin/carbon-cache.py",
-    require => [ Exec["unpack-carbon"], Package["carbon-dependencies"] ]
+    require => [ Exec["unpack-carbon"], Package["carbon-dependencies"], Class["graphite::whisper"] ]
   }
 
   file { "/etc/init.d/carbon" :
