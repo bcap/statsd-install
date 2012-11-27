@@ -11,6 +11,7 @@ Vagrant::Config.run do |config|
   config.vm.forward_port 8125, 8125, { :protocol => 'udp' }
 
   config.vm.provision :puppet do |puppet|
+    puppet.module_path    = "puppet/modules"
     puppet.manifests_path = "puppet/manifests"
     puppet.manifest_file  = "base.pp"
   end
