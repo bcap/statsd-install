@@ -1,6 +1,6 @@
 class graphite-webapp (
-  $major_version = "0.9"
-  $minor_version = "9"
+  $major_version = "0.9",
+  $minor_version = "9",
 ) {
   
   $full_version = "${major_version}.${minor_version}"
