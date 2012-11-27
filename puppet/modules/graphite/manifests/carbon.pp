@@ -1,4 +1,4 @@
-class graphite-carbon (
+class graphite::carbon (
   $major_version = "0.9",
   $minor_version = "9",
 ) {
@@ -31,7 +31,7 @@ class graphite-carbon (
     command => "python setup.py install",
     cwd     => "$build_dir/carbon-${full_version}",
     creates => "/opt/graphite/bin/carbon-cache.py",
-    require => [ Exec["unpack-carbon"], Package["carbon-dependencies"], Class["graphite-webapp"] ]
+    require => [ Exec["unpack-carbon"], Package["carbon-dependencies"] ]
   }
 
   file { "/etc/init.d/carbon" :

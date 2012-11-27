@@ -1,4 +1,4 @@
-class graphite-webapp (
+class graphite::webapp (
   $major_version = "0.9",
   $minor_version = "9",
 ) {
@@ -42,7 +42,7 @@ class graphite-webapp (
   exec { "install-webapp":
     command => "python setup.py install",
     cwd     => "$build_dir/graphite-web-${full_version}",
-    require => [ Exec["unpack-webapp"], Package["webapp-dependencies"], Class["graphite-whisper"] ],
+    require => [ Exec["unpack-webapp"], Package["webapp-dependencies"] ],
     creates => "/opt/graphite/webapp"
   }
 

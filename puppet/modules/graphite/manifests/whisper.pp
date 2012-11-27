@@ -1,4 +1,4 @@
-class graphite-whisper (
+class graphite::whisper (
   $major_version = "0.9",
   $minor_version = "9",
 ) {
