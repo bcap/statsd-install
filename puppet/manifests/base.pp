@@ -63,19 +63,19 @@ class carbon {
   }
 
   file { "/etc/init.d/carbon" :
-    source => "/tmp/vagrant-puppet/manifests/files/carbon",
+    source => "/tmp/vagrant-puppet/files/carbon",
     ensure => present
   }
 
   file { "/opt/graphite/conf/carbon.conf" :
-    source    => "/tmp/vagrant-puppet/manifests/files/carbon.conf",
+    source    => "/tmp/vagrant-puppet/files/carbon.conf",
     ensure    => present,
     notify    => Service["carbon"],
     subscribe => Exec["install-carbon"],
   }
 
   file { "/opt/graphite/conf/storage-schemas.conf" :
-    source    => "/tmp/vagrant-puppet/manifests/files/storage-schemas.conf",
+    source    => "/tmp/vagrant-puppet/files/storage-schemas.conf",
     ensure    => present,
     notify    => Service[carbon],
     subscribe => Exec["install-carbon"],
@@ -151,7 +151,7 @@ class webapp {
 
   file { "/opt/graphite/webapp/graphite/initial_data.json" :
     ensure  => present,
-    source  => "/tmp/vagrant-puppet/manifests/files/initial_data.json",
+    source  => "/tmp/vagrant-puppet/files/initial_data.json",
     require => Exec["install-webapp"],
   }
 
@@ -163,13 +163,13 @@ class webapp {
   }
 
   file { "/opt/graphite/webapp/graphite/local_settings.py" :
-    source  => "/tmp/vagrant-puppet/manifests/files/local_settings.py",
+    source  => "/tmp/vagrant-puppet/files/local_settings.py",
     ensure  => present,
     require => Exec["install-webapp"]
   }
 
   file { "/etc/apache2/sites-available/default" :
-    source  => "/tmp/vagrant-puppet/manifests/files/apache-default-site",
+    source  => "/tmp/vagrant-puppet/files/apache-default-site",
     notify  => Service["apache2"],
     require => Package["webapp-dependencies"],
   }
