@@ -9,3 +9,4 @@ exec { "apt-get-update" :
 }
 
 include graphite
+include statsd
