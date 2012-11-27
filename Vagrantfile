@@ -6,7 +6,7 @@ Vagrant::Config.run do |config|
   
   config.vm.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
   
-  config.vm.forward_port 80, 8080
+  config.vm.forward_port 80,   8080
   config.vm.forward_port 2003, 2003
   config.vm.forward_port 8125, 8125, { :protocol => 'udp' }
 
