@@ -25,6 +25,7 @@ DAEMON_ARGS="/opt/graphite/bin/carbon-cache.py --logdir=/var/log/carbon/ --pidfi
 SCRIPTNAME=/etc/init.d/$NAME
 USER=www-data
 START_STOP_DAEMON_OPTIONS="--chuid=$USER:$USER --background --chdir=/opt/graphite/"
+LOG_PATH=/var/log/$NAME
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
 
@@ -48,7 +49,7 @@ do_start()
 	#   0 if daemon has been started
 	#   1 if daemon was already running
 	#   2 if daemon could not be started
-	start-stop-daemon $START_STOP_DAEMON_OPTIONS --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+	start-stop-daemon $START_STOP_DAEMON_OPTIONS --start --quiet --pidfile $PIDFILE --exec $DAEMON --test >> ${LOG_PATH}/${NAME}.out 2>> ${LOG_PATH}/${NAME}.err  \
 		|| return 1
 	start-stop-daemon $START_STOP_DAEMON_OPTIONS --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
 		$DAEMON_ARGS \
