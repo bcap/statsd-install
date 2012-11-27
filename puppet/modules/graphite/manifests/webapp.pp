@@ -52,7 +52,7 @@ class graphite::webapp (
 
   file { "/opt/graphite/webapp/graphite/initial_data.json" :
     ensure  => present,
-    source  => "/tmp/vagrant-puppet/files/initial_data.json",
+    source  => "puppet:///modules/graphite/initial_data.json",
     require => Exec["install-webapp"],
   }
 
@@ -64,13 +64,13 @@ class graphite::webapp (
   }
 
   file { "/opt/graphite/webapp/graphite/local_settings.py" :
-    source  => "/tmp/vagrant-puppet/files/local_settings.py",
+    source  => "puppet:///modules/graphite/local_settings.py",
     ensure  => present,
     require => Exec["install-webapp"]
   }
 
   file { "/etc/apache2/sites-available/default" :
-    source  => "/tmp/vagrant-puppet/files/apache-default-site",
+    source  => "puppet:///modules/graphite/apache-default-site",
     notify  => Service["apache2"],
     require => Package["webapp-dependencies"],
   }
