@@ -1,7 +1,9 @@
 What
 ----
 
-This is a automated installation of graphite (with whisper and carbon) + statsd using puppet on ubuntu 12.04
+This is a automated installation of [graphite](http://graphite.wikidot.com/) (with whisper and carbon) + [statsd](https://github.com/etsy/statsd) on ubuntu 12.04
+
+The automation uses [puppet](http://puppetlabs.com/puppet/what-is-puppet/) and the class files can be changed/adapted for your installation
 
 How
 ---
@@ -45,3 +47,8 @@ Who
 Fork chain/credits:
 
 [this project](https://github.com/bcap/statsd-install) <- [liuggio's vagrant-statsd-graphite-puppet](https://github.com/liuggio/vagrant-statsd-graphite-puppet) <- [Jimdo's vagrant-statsd-graphite-puppet](https://github.com/Jimdo/vagrant-statsd-graphite-puppet)
+
+What else
+---------
+
+* Refactor the puppet classes a little more so a module can be submited to puppet forge
