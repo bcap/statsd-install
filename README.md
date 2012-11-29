@@ -14,7 +14,7 @@ To run this installation just:
 
 * install vagrant if not installed or get a release at the [vagrant site](http://vagrantup.com/):
 
-		gems install vagrant 
+		gem install vagrant 
 
 * run the vm 
 
