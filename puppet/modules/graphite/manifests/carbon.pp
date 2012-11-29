@@ -75,6 +75,16 @@ class graphite::carbon (
     subscribe => Exec["install-carbon"],
   }
 
+  file { "/opt/carbon/storage/whisper" :
+    ensure    => link,
+    force     => true,
+    owner     => "carbon",
+    group     => "graphite",
+    target    => "/var/lib/whisper/storage",
+    notify    => Service[carbon],
+    subscribe => Exec["install-carbon"],
+  }
+
   file { "/var/run/carbon" :
     ensure  => directory,
     owner   => "carbon",
@@ -91,6 +101,6 @@ class graphite::carbon (
 
   service { "carbon" :
     ensure    => running,
-    require   => [ File["/etc/init.d/carbon"], Exec["install-carbon"] ],
+    require   => [ File["/etc/init.d/carbon"], Exec["install-carbon"], File["/opt/carbon/storage/whisper"] ],
   }
 }

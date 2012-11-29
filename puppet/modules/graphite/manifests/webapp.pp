@@ -77,6 +77,16 @@ class graphite::webapp (
     require   => Package["webapp-dependencies"],
   }
 
+  file { "/opt/graphite/storage/whisper" :
+    ensure    => link,
+    force     => true,
+    owner     => "www-data",
+    group     => "graphite",
+    target    => "/var/lib/whisper/storage",
+    notify    => Service[carbon],
+    subscribe => Exec["install-carbon"],
+  }
+
   exec { "init-db":
     command   => "python manage.py syncdb --noinput",
     cwd       => "/opt/graphite/webapp/graphite",
@@ -93,7 +103,7 @@ class graphite::webapp (
 
   service { "apache2" :
     ensure => "running",
-    require => [ File["/var/log/graphite"], File["/opt/graphite/storage/graphite.db"] ],
+    require => [ File["/var/log/graphite"], File["/opt/graphite/storage/graphite.db"], File["/opt/graphite/storage/whisper"] ],
   }
 
 }

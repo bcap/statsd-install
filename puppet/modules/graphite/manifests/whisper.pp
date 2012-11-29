@@ -36,4 +36,20 @@ class graphite::whisper (
     creates => "/usr/local/bin/whisper-info.py",
     require => [ Exec["unpack-whisper"], Package["whisper-dependencies"] ],
   }
+
+  file { "/var/lib/whisper":
+    ensure  => directory,
+    mode    => "0775",
+    owner   => "root",
+    group   => "graphite",
+    require => Group["graphite"],
+  }
+
+  file { "/var/lib/whisper/storage":
+    ensure  => directory,
+    mode    => "0775",
+    owner   => "root",
+    group   => "graphite",
+    require => [ Group["graphite"], File["/var/lib/whisper"] ]
+  }
 }
