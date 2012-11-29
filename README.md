@@ -14,7 +14,7 @@ To run this installation just:
 
 		git clone https://github.com/bcap/statsd-install.git && cd statsd-install
 
-* install vagrant if not installed or get a release at the [vagrant site](http://vagrantup.com/):
+* install vagrant if not installed or get a release at the [vagrant site](http://vagrantup.com/). Vagrant is a [VirtualBox](https://www.virtualbox.org/) automation framework. Lots of fun!:
 
 		gem install vagrant 
 
