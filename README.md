@@ -3,6 +3,35 @@ What
 
 This is a automated installation of graphite (with whisper and carbon) + statsd using puppet on ubuntu 12.04
 
+How
+---
+
+To run this installation just:
+
+* clone the project:
+
+		git clone https://github.com/bcap/statsd-install.git && cd statsd-install
+
+* install vagrant if not installed or get a release at the [vagrant site](http://vagrantup.com/):
+
+		gems install vagrant 
+
+* run the vm 
+
+		vagrant up
+
+* access [localhost:8080](http://localhost:8080) for the graphs
+
+* push data directly into carbon/graphite by `localhost:2003`. Example: 
+		
+		# set a metric called test.somemetic to value 100
+		echo "test.somemetric 100 `date +%s`" | nc localhost 2003
+
+* push data directly into statsd by `localhost:8125`. Example:
+
+		# increase the test counter by 10
+		echo -n "test:10|c" | nc -u localhost 8125
+
 Why
 ---
 
