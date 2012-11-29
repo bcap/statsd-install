@@ -8,28 +8,20 @@ class graphite::carbon (
   $carbon_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/carbon-${full_version}.tar.gz"
   $carbon_package = "${build_dir}/carbon-${full_version}.tar.gz"
 
-  class { "graphite::whisper": 
-    major_version => $major_version,
-    minor_version => $minor_version,
-  }
+  include "graphite::whisper"
 
   package { "carbon-dependencies":
     name   => ["python-twisted"],
     ensure => latest
   }
 
-  group { "carbon":
-    ensure => present,
-    system => true,
-  }
-
   user { "carbon" :
     ensure  => present,
     comment => "carbon daemon system user",
     home    => "/opt/carbon",
-    gid     => "carbon",
+    gid     => "graphite",
     system  => true,
-    require => Group["carbon"],
+    require => Group["graphite"],
   }
 
   exec { "download-carbon":
@@ -52,7 +44,7 @@ class graphite::carbon (
   }
 
   exec { "install-carbon" :
-    command => "python setup.py install && chown carbon:carbon -R /opt/carbon",
+    command => "python setup.py install && chown carbon:graphite -R /opt/carbon",
     cwd     => "$build_dir/carbon-${full_version}",
     creates => "/opt/carbon/bin/carbon-cache.py",
     require => [ Exec["unpack-carbon"], File["carbon-install-config"], User["carbon"], Package["carbon-dependencies"], Class["graphite::whisper"] ]
@@ -68,7 +60,7 @@ class graphite::carbon (
   file { "/opt/carbon/conf/carbon.conf" :
     source    => "puppet:///modules/graphite/carbon/carbon.conf",
     owner     => "carbon",
-    group     => "carbon",
+    group     => "graphite",
     ensure    => present,
     notify    => Service["carbon"],
     subscribe => Exec["install-carbon"],
@@ -77,7 +69,7 @@ class graphite::carbon (
   file { "/opt/carbon/conf/storage-schemas.conf" :
     source    => "puppet:///modules/graphite/carbon/storage-schemas.conf",
     owner     => "carbon",
-    group     => "carbon",
+    group     => "graphite",
     ensure    => present,
     notify    => Service[carbon],
     subscribe => Exec["install-carbon"],
@@ -86,14 +78,14 @@ class graphite::carbon (
   file { "/var/run/carbon" :
     ensure  => directory,
     owner   => "carbon",
-    group   => "carbon",
+    group   => "graphite",
     require => User["carbon"],
   }
 
   file { "/var/log/carbon" :
     ensure => directory,
     owner  => "carbon",
-    group  => "carbon",
+    group  => "graphite",
     require => User["carbon"],
   }
 

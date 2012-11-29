@@ -8,6 +8,11 @@ class graphite::whisper (
   $whisper_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/whisper-${full_version}.tar.gz"
   $whisper_package = "${build_dir}/whisper-${full_version}.tar.gz"
 
+  group { "graphite":
+    ensure => present,
+    system => true,
+  }
+
   package { "whisper-dependencies" :
     name   => ["python-txamqp"],
     ensure => latest,

@@ -8,6 +8,8 @@ class graphite::webapp (
   $webapp_url = "http://launchpad.net/graphite/${major_version}/${full_version}/+download/graphite-web-${full_version}.tar.gz"
   $webapp_package = "${build_dir}/graphite-web-${full_version}.tar.gz"
 
+  include "graphite::whisper"
+
   package { "webapp-dependencies" :
     name   => [
       "python-support", 

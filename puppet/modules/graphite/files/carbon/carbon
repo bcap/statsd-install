@@ -24,8 +24,9 @@ PIDFILE=/var/run/carbon/carbon-cache.pid
 DAEMON_ARGS="/opt/carbon/bin/carbon-cache.py --logdir=/var/log/carbon/ --pidfile=$PIDFILE start"
 SCRIPTNAME=/etc/init.d/$NAME
 USER=carbon
+GROUP=graphite
 LOG_PATH=/var/log/$NAME
-START_STOP_DAEMON_OPTIONS="--chuid=$USER:$USER --background --chdir=/opt/carbon/"
+START_STOP_DAEMON_OPTIONS="--chuid=$USER:$GROUP --background --chdir=/opt/carbon/"
 # Exit if the package is not installed
 [ -x "$DAEMON" ] || exit 0
 
