@@ -58,6 +58,12 @@ class graphite::webapp (
     require => Exec["install-webapp"]
   }
 
+  file { "/opt/graphite/webapp/graphite/settings.py" :
+    source  => "puppet:///modules/graphite/webapp/settings.py",
+    ensure  => present,
+    require => Exec["install-webapp"]
+  }
+
   file { "/etc/apache2/sites-available/default" :
     source  => "puppet:///modules/graphite/webapp/apache-default-site",
     notify  => Service["apache2"],
