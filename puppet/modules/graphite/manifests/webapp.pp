@@ -29,7 +29,7 @@ class graphite::webapp (
 
   package { "webapp-django-1.3":
     name => "python-django",
-    ensure => "1.3",
+    ensure => "1.3.1-4ubuntu1.4",
   }
 
   exec { "download-webapp":
