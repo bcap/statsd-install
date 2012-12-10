@@ -15,6 +15,7 @@ class graphite::webapp (
       "python-support", 
       "python-ldap", 
       "python-cairo", 
+      "python-django", 
       "python-django-tagging", 
       "python-simplejson", 
       "python-memcache", 
@@ -23,13 +24,7 @@ class graphite::webapp (
       "apache2",
       "libapache2-mod-python",
     ],
-    ensure  => latest,
-    require => Package["webapp-django-1.3"],
-  }
-
-  package { "webapp-django-1.3":
-    name => "python-django",
-    ensure => "1.3.1-4ubuntu1.4",
+    ensure => latest,
   }
 
   exec { "download-webapp":
