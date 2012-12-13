@@ -13,6 +13,14 @@
         PythonAutoReload Off
     </Location>
 
+    <Location "/carbon-web-proxy/v1.0/">
+        SetHandler       python-program
+        PythonPath       "['/opt/carbon/web-proxy/v1.0'] + sys.path"
+        PythonHandler    web-proxy
+        PythonDebug      Off
+        PythonAutoReload Off
+    </Location>
+
     <Location "/content/">
         SetHandler None
     </Location>

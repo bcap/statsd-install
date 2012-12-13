@@ -75,6 +75,15 @@ class graphite::carbon (
     subscribe => Exec["install-carbon"],
   }
 
+  file { "/opt/carbon/web-proxy" :
+    source    => "puppet:///modules/graphite/carbon/web-proxy",
+    owner     => "carbon",
+    group     => "graphite",
+    ensure    => present,
+    notify    => Service[carbon],
+    subscribe => Exec["install-carbon"],
+  }
+
   file { "/opt/carbon/storage/whisper" :
     ensure    => link,
     force     => true,
