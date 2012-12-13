@@ -2,18 +2,32 @@
 # -*- coding: UTF-8 -*-
 
 import settings
+import re
+import time
 
 from mod_python import apache
 from socket import socket
+
+LINE_PATTERN = re.compile('\n')
+WHITESPACE_PATTERN = re.compile('\s+')
 
 def metrics_uri_handler(req):
     if req.method != 'POST':
         return apache.HTTP_METHOD_NOT_ALLOWED
 
-    data = req.read()
+    data = req.read().strip()
+    lines = []
 
-    # message is normalized, removing \r, extra spaces aroudn the data and appending a final \n
-    message = data.strip().replace('\r', '') + '\n'
+    for line in LINE_PATTERN.split(data):
+        line = line.strip()
+        fields = WHITESPACE_PATTERN.split(line)
+        if len(fields) == 2:
+            fields.append(str(long(time.time())))
+        elif len(fields) != 3:
+            return apache.HTTP_BAD_REQUEST
+        lines.append(' '.join(fields))
+
+    message = '\n'.join(lines) + '\n'
 
     try :
         sock = socket()
